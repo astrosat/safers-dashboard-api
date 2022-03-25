@@ -1,14 +1,13 @@
 from django.contrib import admin
 
-from safers.core.admin import get_clickable_fk_list_display
+from safers.core.admin import get_clickable_fk_list_display, CannotDeleteModelAdminBase
 
 from safers.users.models import UserProfile
 
-# TODO: PREVENT DELETION OF PROFILES VIA ADMIN
-
 
 @admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
+class UserProfileAdmin(CannotDeleteModelAdminBase, admin.ModelAdmin):
+
     list_display = (
         "get_name_for_list_display",
         "get_user_for_list_display",
