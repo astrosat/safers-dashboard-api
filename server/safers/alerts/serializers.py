@@ -16,14 +16,16 @@ class AlertSerializer(serializers.ModelSerializer):
             "media",
             "geometry",
             "bounding_box",
+            "favorite",
         )
-        # extra_kwargs = {
-        #     # many fields should be read-only ?
-        #     field: dict([("read_only", True)])
-        #     for field in ["timestamp", "source", "media", "geometry", "bounding_box"]
-        # }  # yapf: disable
 
     geometry = gis_serializers.GeometryField(
         precision=Alert.PRECISION, remove_duplicates=True
     )
     bounding_box = gis_serializers.GeometryField(precision=Alert.PRECISION)
+
+    favorite = serializers.SerializerMethodField(method_name="is_favorite")
+
+    def is_favorite(self, obj):
+        user = self.context["request"].user
+        return obj in user.favorite_alerts.all()
