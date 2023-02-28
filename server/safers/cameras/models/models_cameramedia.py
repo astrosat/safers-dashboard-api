@@ -2,6 +2,7 @@ import requests
 import uuid
 from tempfile import TemporaryFile
 from urllib.parse import urlparse
+from PIL import Image
 
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -9,6 +10,13 @@ from django.db import models
 from django.db.models import Q, ExpressionWrapper
 from django.contrib.gis.db import models as gis_models
 from django.utils.translation import gettext_lazy as _
+
+CAMERA_MEDIA_THUMBNAIL_SIZE = (
+    256,
+    256,
+)
+
+CAMERA_MEDIA_THUMBNAIL_FORMAT = "png"
 
 
 def camera_media_file_path(instance, filename):
@@ -138,6 +146,12 @@ class CameraMedia(gis_models.Model):
         upload_to=camera_media_file_path,
     )
 
+    thumbnail = models.ImageField(
+        blank=True,
+        null=True,
+        upload_to=camera_media_file_path,
+    )
+
     tags = models.ManyToManyField(
         CameraMediaTag,
         blank=True,
@@ -224,7 +238,7 @@ class CameraMedia(gis_models.Model):
         ) >= settings.SAFERS_CAMERA_MEDIA_TRIGGER_ALERT_TIMERANGE
 
     @staticmethod
-    def copy_url_to_file(url, file_field):
+    def copy_url_to_media(url, media_field):
 
         assert url, "URL does not exist"
 
@@ -235,15 +249,36 @@ class CameraMedia(gis_models.Model):
             for response_chunk in response.iter_content(chunk_size=4096):
                 temp_file.write(response_chunk)
             temp_file.seek(0)
-            file_field.save(
+            media_field.save(
                 file_name,
                 temp_file,
+                save=True,
+            )
+
+    @staticmethod
+    def copy_media_to_thumbnail(media_file, thumbnail_field):
+
+        assert media_file, "media does not exist"
+
+        image = Image.open(media_file)
+        image.thumbnail(CAMERA_MEDIA_THUMBNAIL_SIZE, Image.ANTIALIAS)
+
+        file_name = f"thumbnail_{media_file.name.split('/')[-1]}"
+        with TemporaryFile() as temp_file:
+            image.save(temp_file, format=CAMERA_MEDIA_THUMBNAIL_FORMAT)
+            thumbnail_field.save(
+                file_name,
+                temp_file,
+                save=True,
             )
 
     def save(self, **kwargs):
         retval = super().save(**kwargs)
 
         if self.url and not self.media:
-            CameraMedia.copy_url_to_file(self.url, self.media)
+            CameraMedia.copy_url_to_media(self.url, self.media)
+
+        if self.media and not self.thumbnail:
+            CameraMedia.copy_media_to_thumbnail(self.media.file, self.thumbnail)
 
         return retval

@@ -20,13 +20,16 @@ class CameraMediaSerializer(serializers.ModelSerializer):
             "geometry",
             "url",
             "media_url",
+            "thumbnail_url",
             "favorite",  # note "favorite" is an annotated field
         )
         extra_kwargs = {
             "media_url": {
-                "source": "media",
-                "read_only": True,
-            }
+                "source": "media", "read_only": True
+            },
+            "thumbnail_url": {
+                "source": "thumbnail", "read_only": True
+            },
         }
 
     camera_id = serializers.SlugRelatedField(
