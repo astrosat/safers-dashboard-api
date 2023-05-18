@@ -52,4 +52,6 @@ class CameraMediaSerializer(serializers.ModelSerializer):
     #     precision=CameraMedia.PRECISION, allow_null=True, required=False
     # )
 
-    favorite = serializers.BooleanField(read_only=True, required=False, allow_null=True,)
+    favorite = serializers.BooleanField(
+        read_only=True, required=False, allow_null=True
+    )
