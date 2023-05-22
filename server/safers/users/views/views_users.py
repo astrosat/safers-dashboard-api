@@ -30,14 +30,15 @@ _user_request_schema = openapi.Schema(
         "organization": "7791f5fa-bb0a-42da-8fea-8c81ab614ee4",
         "role": "a5ec15be-67bc-43d3-9c5d-049f788bf163",
         "default_aoi": 2,
-        "first_name": "Miles",
-        "last_name": "Dyson",
-        "company": "Cyberdyne Systems",
-        "address": "123 Main Street",
-        "city": "Los Angeles",
-        "country": "USA",
-        "avatar": None,
-        "remote_profile_fields": []
+        "profile": {
+            "first_name": "Miles",
+            "last_name": "Dyson",
+            "company": "Cyberdyne Systems",
+            "address": "123 Main Street",
+            "city": "Los Angeles",
+            "country": "USA",
+            "avatar": None,
+        },
     }
 )
 

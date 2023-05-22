@@ -55,6 +55,7 @@ class UserSerializer(UserSerializerLite):
         fields = UserSerializerLite.Meta.fields + (
             "organization",
             "role",
+            "profile",
             "default_aoi",
             "oauth2",
         )
