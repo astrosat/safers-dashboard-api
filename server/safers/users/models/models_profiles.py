@@ -61,12 +61,12 @@ class UserProfile(models.Model):
 
     objects = UserProfileManager.from_queryset(UserProfileQuerySet)()
 
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        null=True,
-        on_delete=models.CASCADE,
-        related_name="profile"
-    )
+    # user = models.OneToOneField(
+    #     settings.AUTH_USER_MODEL,
+    #     null=True,
+    #     on_delete=models.CASCADE,
+    #     related_name="profile"
+    # )
 
     # dashboard-specific fields, like `default_aoi` and `favorite_alerts` are stored on User
     # the profile includes fields that could come from FusionAuth if the user was remote
