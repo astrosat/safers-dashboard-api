@@ -20,13 +20,12 @@ from safers.users.exceptions import AuthenticationException
 from safers.users.models import User, Oauth2User, AUTH_USER_FIELDS, AUTH_PROFILE_FIELDS, AUTH_TOKEN_FIELDS
 from safers.users.permissions import IsRemote
 from safers.users.serializers import (
-    KnoxTokenSerializer,
     Oauth2AuthenticateSerializer,
     Oauth2RegisterViewSerializer,
     Oauth2UserSerializer,
     UserSerializerLite,
 )
-from safers.users.utils import AUTH_CLIENT, create_knox_token
+from safers.users.utils import AUTH_CLIENT
 
 logger = logging.getLogger(__name__)
 """
@@ -102,7 +101,6 @@ class LoginView(GenericAPIView):
                 (("code", openapi.Schema(type=openapi.TYPE_STRING)), )
             ),
         ),
-        responses={status.HTTP_200_OK: KnoxTokenSerializer},
     )
     def post(self, request, *args, **kwargs):
 
@@ -136,18 +134,9 @@ class LoginView(GenericAPIView):
                     setattr(auth_user, AUTH_TOKEN_FIELDS[k], v)
             auth_user.save()
 
-            token_dataclass = create_knox_token(None, user, None)
-            token_serializer = KnoxTokenSerializer(token_dataclass)
-
-            if self.is_swagger:
-                json.dump(
-                    token_serializer.data, fp=stdout, indent=2, cls=JSONEncoder
-                )
-
             return Response(
-                token_serializer.data,
-                status=status.HTTP_201_CREATED
-                if created_user else status.HTTP_200_OK
+                status=status.HTTP_201_CREATED if created_user else status.
+                HTTP_200_OK
             )
 
         except Exception as e:

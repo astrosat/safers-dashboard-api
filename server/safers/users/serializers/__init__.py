@@ -6,15 +6,15 @@ from .serializers_oauth2 import (
     Oauth2UserSerializer,
 )
 from .serializers_users import UserSerializerLite, UserSerializer, ReadOnlyUserSerializer
-from .serializers_auth import (
-    JWTSerializer,
-    LoginSerializer,
-    PasswordChangeSerializer,
-    PasswordResetSerializer,
-    PasswordResetConfirmSerializer,
-    TokenSerializer,
-    UserDetailsSerializer,
-    RegisterSerializer,
-    TokenObtainPairSerializer,
-)
-from .serializers_knox import KnoxTokenSerializer
+# from .serializers_auth import (
+#     JWTSerializer,
+#     LoginSerializer,
+#     PasswordChangeSerializer,
+#     PasswordResetSerializer,
+#     PasswordResetConfirmSerializer,
+#     TokenSerializer,
+#     UserDetailsSerializer,
+#     RegisterSerializer,
+#     TokenObtainPairSerializer,
+# )
+# from .serializers_knox import KnoxTokenSerializer

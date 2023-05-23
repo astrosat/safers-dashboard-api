@@ -1,11 +1,6 @@
-from collections import defaultdict
-
 from django.conf import settings
 
 from rest_framework import serializers
-from rest_framework.utils.serializer_helpers import ReturnDict
-
-from drf_yasg.utils import swagger_serializer_method
 
 from safers.aois.models import Aoi
 
@@ -31,7 +26,6 @@ class UserSerializerLite(serializers.ModelSerializer):
             "email",
             "username",
             "accepted_terms",
-            "is_verified",
             "last_login",
             "is_local",
             "is_remote",
@@ -40,10 +34,6 @@ class UserSerializerLite(serializers.ModelSerializer):
         )
 
     last_login = serializers.DateTimeField(read_only=True)
-
-    @swagger_serializer_method(serializer_or_field=serializers.BooleanField)
-    def is_verified(self, obj):
-        return obj.is_verified
 
 
 class UserSerializer(UserSerializerLite):
