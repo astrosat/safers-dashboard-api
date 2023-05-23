@@ -11,7 +11,6 @@ from safers.events.models import Event
 from safers.cameras.models import CameraMedia
 
 from safers.users.models import User
-from safers.users.serializers import Oauth2UserSerializer
 
 
 class UserSerializerLite(serializers.ModelSerializer):
@@ -49,7 +48,6 @@ class UserSerializer(UserSerializerLite):
             "role",
             "profile",
             "default_aoi",
-            "oauth2",
         )
 
     organization_name = serializers.CharField(
@@ -74,8 +72,6 @@ class UserSerializer(UserSerializerLite):
     default_aoi = serializers.PrimaryKeyRelatedField(
         queryset=Aoi.objects.active(), required=False, allow_null=True
     )
-
-    oauth2 = Oauth2UserSerializer(source="auth_user")
 
     def validate(self, data):
         validated_data = super().validate(data)

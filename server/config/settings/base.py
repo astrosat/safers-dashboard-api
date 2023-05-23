@@ -57,15 +57,11 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    # "allauth",
-    # "allauth.account",
-    # "allauth.socialaccount",
     "anymail",
     "corsheaders",
-    "dbbackup",  # "dj_rest_auth",
-    # "dj_rest_auth.registration",
+    "dbbackup",
     "django_filters",
-    "drf_yasg",  # "knox",
+    "drf_yasg",
     "rest_framework",
     "rest_framework_gis",
     "sequences",
@@ -323,45 +319,6 @@ REST_FRAMEWORK = {
 
 FILTERS_DEFAULT_LOOKUP_EXPR = "iexact"
 
-# # TODO: REMOVE
-# REST_KNOX = {
-#     "SECURE_HASH_ALGORITHM": "cryptography.hazmat.primitives.hashes.SHA512",
-#     "AUTH_TOKEN_CHARACTER_LENGTH": 64,
-#     "TOKEN_TTL": timedelta(hours=10),
-#     "USER_SERIALIZER": "safers.users.serializers.UserSerializer",
-#     "TOKEN_LIMIT_PER_USER": None,
-#     "AUTO_REFRESH": False,
-#     "AUTH_HEADER_PREFIX": "Bearer",
-# }
-
-# # TODO: REMOVE
-# REST_AUTH = {
-#     "LOGIN_SERIALIZER":
-#         "safers.users.serializers.LoginSerializer",
-#     "TOKEN_SERIALIZER":
-#         "safers.users.serializers.KnoxTokenSerializer",
-#     "JWT_SERIALIZER":
-#         "safers.users.serializers.JWTSerializer",
-#     "JWT_TOKEN_CLAIMS_SERIALIZER":
-#         "safers.users.serializers.TokenObtainPairSerializer",
-#     "USER_DETAILS_SERIALIZER":
-#         "safers.users.serializers.UserDetailsSerializer",
-#     "PASSWORD_RESET_SERIALIZER":
-#         "safers.users.serializers.PasswordResetSerializer",
-#     "PASSWORD_RESET_CONFIRM_SERIALIZER":
-#         "safers.users.serializers.PasswordResetConfirmSerializer",
-#     "PASSWORD_CHANGE_SERIALIZER":
-#         "safers.users.serializers.PasswordChangeSerializer",
-#     "REGISTER_SERIALIZER":
-#         "safers.users.serializers.RegisterSerializer",
-#     "TOKEN_MODEL":
-#         "knox.models.AuthToken",
-#     "TOKEN_CREATOR":
-#         "safers.users.utils.create_knox_token",
-#     "OLD_PASSWORD_FIELD_ENABLED":
-#         True,
-# }
-
 # TODO: REMOVE
 SWAGGER_SETTINGS = {
     # "USE_SESSION_AUTH": False,
@@ -438,10 +395,12 @@ SAFERS_ALLOW_SIGNUP = DynamicSetting(
     "core.SafersSettings.allow_signup",
     True,
 )
-SAFERS_REQUIRE_VERIFICATION = DynamicSetting(
-    "core.SafersSettings.require_verification",
+
+SAFERS_ALLOW_SIGNIN = DynamicSetting(
+    "core.SafersSettings.allow_signin",
     True,
 )
+
 SAFERS_REQUIRE_TERMS_ACCEPTANCE = DynamicSetting(
     "core.SafersSettings.require_terms_acceptance",
     True,

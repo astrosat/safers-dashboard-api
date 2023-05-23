@@ -1,7 +1,6 @@
 from django.utils.decorators import method_decorator
 
 from rest_framework import generics, status
-from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
 
 from drf_yasg import openapi
