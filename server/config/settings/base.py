@@ -454,13 +454,13 @@ SAFERS_GATEWAY_URL = env(
     default="https://api-test.safers-project.cloud/",
 )
 
-SAFERS_GEOSERVER_API_URL = env(
-    "SAFERS_GEOSERVER_API_URL",
+SAFERS_GEOSERVER_URL = env(
+    "SAFERS_GEOSERVER_URL",
     default="https://geoserver-test.safers-project.cloud/",
 )
 
-SAFERS_GEOSERVER_API_URLS = env(
-    "SAFERS_GEOSERVER_API_URLS",
+SAFERS_GEOSERVER_URLS = env(
+    "SAFERS_GEOSERVER_URLS",
     default=
     "https://geoserver-test1.safers-project.cloud/,https://geoserver-test2.safers-project.cloud/,https://geoserver-test3.safers-project.cloud/,https://geoserver-test4.safers-project.cloud/",
 ).split(",")

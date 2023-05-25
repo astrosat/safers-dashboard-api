@@ -1,12 +1,10 @@
 import requests
 from collections import OrderedDict, defaultdict
 from datetime import datetime
-from itertools import repeat
 from urllib.parse import quote_plus, urlencode, urljoin
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.utils.decorators import method_decorator
 
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
@@ -17,19 +15,16 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
 from safers.core.decorators import swagger_fake
-from safers.core.models import SafersSettings, GeoserverStandards
 from safers.core.utils import chunk
 
 from safers.data.models import MapRequest, DataType
 from safers.data.permissions import IsReadOnlyOrOwner
 from safers.data.serializers import MapRequestSerializer, MapRequestViewSerializer
-from safers.data.utils import extent_to_scaled_resolution
 
 from safers.rmq import RMQ_USER
 
 from safers.core.authentication import TokenAuthentication
 from safers.users.exceptions import AuthenticationException
-from safers.users.permissions import IsRemote
 
 UserModel = get_user_model()
 
@@ -226,53 +221,26 @@ class MapRequestViewSet(
 
         # TODO: REFACTOR - MUCH OF THIS IS DUPLILCATED IN DataLayerView
 
-        safers_settings = SafersSettings.load()
-        max_resolution = safers_settings.map_request_resolution
-        width, height = repeat(max_resolution, 2)
-
-        if safers_settings.geoserver_standard == GeoserverStandards.WMS:
-            geoserver_layer_query_params = urlencode(
-                {
-                    "service": "WMS",
-                    "version": "1.1.0",
-                    "request": "GetMap",
-                    "srs": self.WMS_CRS,
-                    "time": "{time}",
-                    "layers": "{name}",
-                    "bbox": "{bbox}",
-                    "transparent": True,
-                    "width": width,
-                    "height": height,
-                    "format": "image/png",
-                },
-                safe="{}",
-            )
-            geoserver_layer_urls = [
-                f"{urljoin(geoserver_api_url, self.GEOSERVER_WMS_URL_PATH)}?{geoserver_layer_query_params}"
-                for geoserver_api_url in settings.SAFERS_GEOSERVER_API_URLS
-            ]
-
-        elif safers_settings.geoserver_standard == GeoserverStandards.WMTS:
-            geoserver_layer_query_params = urlencode(
-                {
-                    "time": "{time}",
-                    "layer": "{name}",
-                    "service": "WMTS",
-                    "request": "GetTile",
-                    "version": "1.0.0",
-                    "transparent": True,
-                    "tilematrixset": self.WMTS_CRS,
-                    "tilematrix": self.WMTS_CRS + ":{{z}}",
-                    "tilecol": "{{x}}",
-                    "tilerow": "{{y}}",
-                    "format": "image/png",
-                },
-                safe="{}",
-            )
-            geoserver_layer_urls = [
-                f"{urljoin(geoserver_api_url, self.GEOSERVER_WMTS_URL_PATH)}?{geoserver_layer_query_params}"
-                for geoserver_api_url in settings.SAFERS_GEOSERVER_API_URLS
-            ]
+        geoserver_layer_query_params = urlencode(
+            {
+                "time": "{time}",
+                "layer": "{name}",
+                "service": "WMTS",
+                "request": "GetTile",
+                "version": "1.0.0",
+                "transparent": True,
+                "tilematrixset": self.WMTS_CRS,
+                "tilematrix": self.WMTS_CRS + ":{{z}}",
+                "tilecol": "{{x}}",
+                "tilerow": "{{y}}",
+                "format": "image/png",
+            },
+            safe="{}",
+        )
+        geoserver_layer_urls = [
+            f"{urljoin(geoserver_api_url, self.GEOSERVER_WMTS_URL_PATH)}?{geoserver_layer_query_params}"
+            for geoserver_api_url in settings.SAFERS_GEOSERVER_URLS
+        ]
 
         geoserver_legend_query_params = urlencode(
             {
@@ -287,7 +255,7 @@ class MapRequestViewSet(
             },
             safe="{}",
         )
-        geoserver_legend_url = f"{urljoin(settings.SAFERS_GEOSERVER_API_URL, self.GEOSERVER_WMS_URL_PATH)}?{geoserver_legend_query_params}"
+        geoserver_legend_url = f"{urljoin(settings.SAFERS_GEOSERVER_URL, self.GEOSERVER_WMS_URL_PATH)}?{geoserver_legend_query_params}"
 
         geoserver_pixel_query_params = urlencode(
             {
@@ -306,7 +274,7 @@ class MapRequestViewSet(
             },
             safe="{}",
         )
-        geoserver_pixel_url = f"{urljoin(settings.SAFERS_GEOSERVER_API_URL, self.GEOSERVER_WMS_URL_PATH)}?{geoserver_pixel_query_params}"
+        geoserver_pixel_url = f"{urljoin(settings.SAFERS_GEOSERVER_URL, self.GEOSERVER_WMS_URL_PATH)}?{geoserver_pixel_query_params}"
 
         geoserver_timeseries_query_params = urlencode(
             {
@@ -328,7 +296,7 @@ class MapRequestViewSet(
             },
             safe="{}",
         )
-        geoserver_timeseries_url = f"{urljoin(settings.SAFERS_GEOSERVER_API_URL, self.GEOSERVER_WMS_URL_PATH)}?{geoserver_timeseries_query_params}"
+        geoserver_timeseries_url = f"{urljoin(settings.SAFERS_GEOSERVER_URL, self.GEOSERVER_WMS_URL_PATH)}?{geoserver_timeseries_query_params}"
 
         metadata_url = f"{self.request.build_absolute_uri(self.METADATA_URL_PATH)}/{{metadata_id}}?metadata_format={{metadata_format}}"
 
