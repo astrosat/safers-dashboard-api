@@ -9,8 +9,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse, OpenApiTypes
 
 from safers.core.authentication import TokenAuthentication
@@ -18,7 +16,7 @@ from safers.core.clients import GATEWAY_CLIENT
 from safers.core.utils import chunk
 
 from safers.data.models import DataType
-from safers.data.serializers import OperationalLayerViewSerializer
+from safers.data.serializers import LayerViewSerializer
 
 ###########
 # swagger #
@@ -97,8 +95,10 @@ _operational_layer_view_response = OpenApiResponse(
     ]
 )  # yapf: disable
 
-_operational_layer_domains_schema = openapi.Schema(
-    type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_STRING)
+_layer_domains_schema = OpenApiResponse(
+    OpenApiTypes.ANY, examples=[OpenApiExample("valid response", [
+        "string",
+    ])]
 )
 
 #########
@@ -109,10 +109,10 @@ _operational_layer_domains_schema = openapi.Schema(
 class OperationalLayerView(views.APIView):
 
     permission_classes = [IsAuthenticated]
-    serializer_class = OperationalLayerViewSerializer
+    serializer_class = LayerViewSerializer
 
     @extend_schema(
-        request=OperationalLayerViewSerializer,
+        request=None,
         responses={
             status.HTTP_200_OK: _operational_layer_view_response,
         }
@@ -137,7 +137,7 @@ class OperationalLayerView(views.APIView):
 
         serializer = self.serializer_class(
             data=request.query_params,
-            context={},
+            context={"include_map_requests": False},
         )
         serializer.is_valid(raise_exception=True)
 
@@ -332,9 +332,10 @@ class OperationalLayerView(views.APIView):
         return Response(data)
 
 
-@swagger_auto_schema(
-    responses={status.HTTP_200_OK: _operational_layer_domains_schema},
-    method="get"
+@extend_schema(
+    request=None, responses={
+        status.HTTP_200_OK: _layer_domains_schema,
+    }
 )
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -343,6 +344,23 @@ def operational_layer_domains_view(request):
     Returns the list of possible OperationalLayer domains.
     """
     data_type_domains = DataType.objects.operational().only("domain").exclude(
+        domain__isnull=True
+    ).order_by("domain").values_list("domain", flat=True).distinct()
+    return Response(data_type_domains, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    request=None, responses={
+        status.HTTP_200_OK: _layer_domains_schema,
+    }
+)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def on_demand_layer_domains_view(request):
+    """
+    Returns the list of possible OnDemandLayer domains.
+    """
+    data_type_domains = DataType.objects.on_demand().only("domain").exclude(
         domain__isnull=True
     ).order_by("domain").values_list("domain", flat=True).distinct()
     return Response(data_type_domains, status=status.HTTP_200_OK)

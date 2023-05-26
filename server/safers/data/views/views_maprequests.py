@@ -13,18 +13,20 @@ from rest_framework.response import Response
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse, OpenApiTypes
 
 from safers.core.decorators import swagger_fake
+from safers.core.clients import GATEWAY_CLIENT
+
 from safers.core.utils import chunk
 
 from safers.data.models import MapRequest, DataType
 from safers.data.permissions import IsReadOnlyOrOwner
-from safers.data.serializers import MapRequestSerializer, MapRequestViewSerializer
+from safers.data.serializers import LayerViewSerializer, MapRequestSerializer
 
 from safers.rmq import RMQ_USER
 
 from safers.core.authentication import TokenAuthentication
-from safers.users.exceptions import AuthenticationException
 
 UserModel = get_user_model()
 
@@ -59,64 +61,68 @@ _map_request_schema = openapi.Schema(
 )  # yapf: disable
 
 
-_map_request_list_schema = openapi.Schema(
-    type=openapi.TYPE_ARRAY,
-    items=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        example={
-            "key": "1",
-            "category": "Fire Simulation",
-            # "source": "string",
-            # "domain": "string",
-            # "info": "string",
-            # "info_url": None,
-            "requests": [
+_on_demand_layer_view_response = OpenApiResponse(
+    OpenApiTypes.ANY,
+    examples=[
+        OpenApiExample(
+            "valid response",
+            [
                 {
-                    "key": "1.1",
-                    "id": "0736d0dd-6dd4-48dd-8a3c-586ec8ab61b2",
-                    "request_id": "string",
-                    "title": "string",
-                    "timestamp": "022-07-04T14:09:31.618887Z",
-                    "user": "9aacbe6f-8ae5-479b-a539-2eac942d2c14",
+                    "key": "1",
                     "category": "Fire Simulation",
-                    "parameters": {},
-                    "geometry": {},
-                    "geometry_wkt": "POLYGON ((1 2, 3 4, 5 6, 1 2))",
-                    "geometry_features": {
-                        "type": "FeatureCollection",
-                        "features": [{
-                            "type": "Polygon",
-                            "coordinates": [[[1, 2], [3, 4]]]
-                        }]
-                    },
-                    "layers": [
+                    # "source": "string",
+                    # "domain": "string",
+                    # "info": "string",
+                    # "info_url": None,
+                    "requests": [
                         {
-                            "key": "1.1.1",
-                            "datatype_id": "string",
-                            "name": "string",
-                            "source": "string",
-                            "domain": "string",
-                            "feature_string": "value of pixel: {{$.features[0].properties.GRAY_INDEX}}",
-                            "status": "string",
-                            "message": None,
-                            "units": "°C",
-                            "info": None,
-                            "info_url": "url",
-                            "metadata_url": "url",
-                            "legend_url": "url",
-                            "pixel_url": "url",
-                            "timeseries_urls": ["url", "url"],
-                            "urls": [
+                            "key": "1.1",
+                            "id": "0736d0dd-6dd4-48dd-8a3c-586ec8ab61b2",
+                            "request_id": "string",
+                            "title": "string",
+                            "timestamp": "022-07-04T14:09:31.618887Z",
+                            "user": "9aacbe6f-8ae5-479b-a539-2eac942d2c14",
+                            "category": "Fire Simulation",
+                            "parameters": {},
+                            "geometry": {},
+                            "geometry_wkt": "POLYGON ((1 2, 3 4, 5 6, 1 2))",
+                            "geometry_features": {
+                                "type": "FeatureCollection",
+                                "features": [{
+                                    "type": "Polygon",
+                                    "coordinates": [[[1, 2], [3, 4]]]
+                                }]
+                            },
+                            "layers": [
                                 {
-                                    "datetime": ["url1", "url2", "url3"]
+                                    "key": "1.1.1",
+                                    "datatype_id": "string",
+                                    "name": "string",
+                                    "source": "string",
+                                    "domain": "string",
+                                    "feature_string": "value of pixel: {{$.features[0].properties.GRAY_INDEX}}",
+                                    "status": "string",
+                                    "message": None,
+                                    "units": "°C",
+                                    "info": None,
+                                    "info_url": "url",
+                                    "metadata_url": "url",
+                                    "legend_url": "url",
+                                    "pixel_url": "url",
+                                    "timeseries_urls": ["url", "url"],
+                                    "urls": [
+                                        {
+                                            "datetime": ["url1", "url2", "url3"]
+                                        }
+                                    ]
                                 }
                             ]
                         }
                     ]
                 }
             ]
-        }
-    )
+        )
+    ]
 )  # yapf: disable
 
 _map_request_domains_schema = openapi.Schema(
@@ -132,12 +138,6 @@ _map_request_domains_schema = openapi.Schema(
 # @method_decorator(
 #     swagger_auto_schema(responses={status.HTTP_200_OK: _map_request_schema}),
 #     name="create",
-# )
-# @method_decorator(
-#     swagger_auto_schema(
-#         responses={status.HTTP_200_OK: _map_request_list_schema}
-#     ),
-#     name="list",
 # )
 class MapRequestViewSet(
     mixins.CreateModelMixin,
@@ -203,9 +203,9 @@ class MapRequestViewSet(
         instance.revoke()
         instance.delete()
 
-    @swagger_auto_schema(
-        query_serializer=MapRequestViewSerializer,
-        responses={status.HTTP_200_OK: _map_request_list_schema}
+    @extend_schema(
+        request=None,
+        responses={status.HTTP_200_OK: _on_demand_layer_view_response}
     )
     def list(self, request, *args, **kwargs):
         """
@@ -218,8 +218,6 @@ class MapRequestViewSet(
             map_request_data["request_id"]: map_request_data
             for map_request_data in queryset.values()
         }  # dict of map_request_data keyed by request_id
-
-        # TODO: REFACTOR - MUCH OF THIS IS DUPLILCATED IN DataLayerView
 
         geoserver_layer_query_params = urlencode(
             {
@@ -300,40 +298,28 @@ class MapRequestViewSet(
 
         metadata_url = f"{self.request.build_absolute_uri(self.METADATA_URL_PATH)}/{{metadata_id}}?metadata_format={{metadata_format}}"
 
-        view_serializer = MapRequestViewSerializer(
+        view_serializer = LayerViewSerializer(
             data=request.query_params,
-            context=dict(
-                **self.get_serializer_context(),
-                map_request_codes=[
+            context={
+                "include_map_requests":
+                    True,
+                "map_request_codes": [
                     f"{RMQ_USER}.{request_id}"
                     for request_id in map_requests.keys()
                 ],
-            ),
+            }
         )
         view_serializer.is_valid(raise_exception=True)
 
-        proxy_params = {
-            view_serializer.ProxyFieldMapping[k]: v
-            for k, v in view_serializer.validated_data.items()
-            if k in view_serializer.ProxyFieldMapping
-        }  # yapf: disable
-
-        try:
-            response = requests.get(
-                urljoin(settings.SAFERS_GATEWAY_URL, self.GATEWAY_URL_PATH),
-                auth=TokenAuthentication(request.auth),
-                params=proxy_params,
-            )
-            response.raise_for_status()
-        except Exception as e:
-            raise AuthenticationException(e)
-
-        proxy_content = response.json()
+        on_demand_layers_data = GATEWAY_CLIENT.get_layers(
+            auth=TokenAuthentication(request.auth),
+            params=view_serializer.validated_data
+        )
 
         # proxy_details is a dict of dicts: "request_id" followed by "data_type_id"
         # it is passed as context to the serializer below to add links, etc. to the model_serializer data
         proxy_details = defaultdict(dict)
-        for group in proxy_content.get("layerGroups") or []:
+        for group in on_demand_layers_data.get("layerGroups") or []:
             for sub_group in group.get("subGroups") or []:
                 for layer in sub_group.get("layers") or []:
                     for detail in layer.get("details") or []:

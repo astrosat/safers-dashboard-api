@@ -5,8 +5,8 @@ from rest_framework import routers
 from safers.data.views import (
     OperationalLayerView,
     operational_layer_domains_view,
+    on_demand_layer_domains_view,
     MapRequestViewSet,
-    map_request_domains_view,
     DataLayerMetadataView,
 )
 
@@ -24,12 +24,12 @@ api_urlpatterns = [
     path(
         "data/layers/domains",
         operational_layer_domains_view,
-        name="operational-layers-domains-list"
+        name="operational-layers-domains-list",
     ),
     path(
         "data/maprequests/domains",
-        map_request_domains_view,
-        name="map-requests-domains-list"
+        on_demand_layer_domains_view,
+        name="ondemand-layers-domains-list",
     ),
     path(
         "data/layers/metadata/<slug:metadata_id>",
