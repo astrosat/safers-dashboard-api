@@ -372,18 +372,3 @@ class MapRequestViewSet(
         )
 
         return Response(model_serializer.data, status=status.HTTP_200_OK)
-
-
-@swagger_auto_schema(
-    responses={status.HTTP_200_OK: _map_request_domains_schema}, method="get"
-)
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def map_request_domains_view(request):
-    """
-    Returns the list of possible MapRequest domains.
-    """
-    data_type_domains = DataType.objects.on_demand().only("domain").exclude(
-        domain__isnull=True
-    ).order_by("domain").values_list("domain", flat=True).distinct()
-    return Response(data_type_domains, status=status.HTTP_200_OK)
