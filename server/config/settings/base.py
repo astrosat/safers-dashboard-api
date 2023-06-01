@@ -323,11 +323,7 @@ REST_FRAMEWORK = {
         # "rest_framework.authentication.TokenAuthentication",
         "safers.auth.authentication.OAuth2Authentication",
     ],
-    "DEFAULT_SCHEMA_CLASS":
-        "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_FILTER_BACKENDS": [
-        "drf_spectacular.contrib.django_filters.DjangoFilterBackend",
-    ]
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 FILTERS_DEFAULT_LOOKUP_EXPR = "iexact"

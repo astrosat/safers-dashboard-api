@@ -11,7 +11,9 @@ class PathMatcher(object):
         self.url_patterns = chain(*url_patterns)
 
     def __contains__(self, path):
-        return any(pattern.match(path) for pattern in self.url_patterns)
+        for pattern in self.url_patterns:
+            if pattern.match(path):
+                return True
 
 
 class RegexPathMatcher(PathMatcher):
