@@ -8,7 +8,7 @@ class PathMatcher(object):
     silky profiling (inspired by https://stackoverflow.com/a/71313038/1060339)
     """
     def __init__(self, *url_patterns):
-        self.url_patterns = chain(*url_patterns)
+        self.url_patterns = list(chain(*url_patterns))
 
     def __contains__(self, path):
         for pattern in self.url_patterns:
