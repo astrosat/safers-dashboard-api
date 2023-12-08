@@ -36,7 +36,6 @@ class AlertSerializer(serializers.ModelSerializer):
             "geometry",
             "center",
             "bounding_box",
-            "media",
             "message",
             "information",
         )
@@ -100,7 +99,7 @@ class AlertViewSetSerializer(AlertSerializer):
             "geometry",
             "center",
             "bounding_box",
-            "media",
+            "media_urls",
             "information",
             "favorite",
         )
